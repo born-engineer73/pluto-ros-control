@@ -15,10 +15,10 @@ void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) {
   memcpy(&receivedData, incomingData, sizeof(receivedData));
  
   // Print the received data
-  Serial.print("Received deltaX: ");
+  //Serial.print("Received deltaX: ");
   Serial.print(receivedData.deltaX);
-  Serial.print(", deltaY: ");
-  Serial.println(receivedData.deltaY);
+  //Serial.print(", deltaY: ");
+  //Serial.println(receivedData.deltaY);
 }
 
 void setup() {
