@@ -2,6 +2,7 @@
 from plutodrone.srv import *
 from plutodrone.msg import *
 from std_msgs.msg import Int32
+from std_msgs.msg import Int32MultiArray
 import rospy
 import sys
 
@@ -9,11 +10,11 @@ class DroneController():
     def __init__(self):
         rospy.init_node('drone_controller')
         self.command_pub = rospy.Publisher('/drone_command', PlutoMsg, queue_size=1)
-        self.delta_x_sub = rospy.Subscriber('/deltaX', Int32, self.update_roll)
+        self.delta_x_sub = rospy.Subscriber('/deltaX', Int32MultiArray, self.update_roll)
 
         self.cmd = PlutoMsg()
         self.cmd.rcRoll = 0
-        self.cmd.rcPitch = 1500
+        self.cmd.rcPitch = 0
         self.cmd.rcYaw = 1500
         self.cmd.rcThrottle = 1500
         self.cmd.rcAUX1 = 1500
@@ -28,7 +29,8 @@ class DroneController():
         self.rate = rospy.Rate(10)  # 10 Hz
 
     def update_roll(self, msg):
-        delta_x = msg.data
+        delta_x = msg.data[0]
+	delta_y = msg.data[1]
         # Adjust roll based on deltaX value
         
        
@@ -44,7 +46,17 @@ class DroneController():
         # Ensure roll stays within the valid range (e.g., 1000 to 2000)
         self.cmd.rcRoll = max(-100, min(100, self.cmd.rcRoll))
 
-        rospy.loginfo("Adjusted roll: {}".format(self.cmd.rcRoll))
+
+	if delta_y > 20:
+            self.cmd.rcPitch -= ((delta_y - 20)/20)
+        elif delta_y < -20:
+            self.cmd.rcPitch += ((20 - delta_y)/20)
+	else:
+	    self.cmd.rcPitch=0
+        # Ensure roll stays within the valid range (e.g., 1000 to 2000)
+        self.cmd.rcPitch = max(-100, min(100, self.cmd.rcPitch))
+	rospy.loginfo("Adjusted Roll: {}".format(self.cmd.rcRoll))
+        rospy.loginfo("Adjusted Pitch: {}".format(self.cmd.rcPitch))
         self.command_pub.publish(self.cmd)
 
     def run(self):
